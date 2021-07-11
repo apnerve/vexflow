@@ -2,8 +2,7 @@
  * VexFlow - Factory Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-Vex.Flow.Test.Factory = (function () {
+const FactoryTests = (function () {
   var Factory = {
     Start: function () {
       QUnit.module('Factory');
@@ -18,6 +17,7 @@ Vex.Flow.Test.Factory = (function () {
       assert.throws(function () {
         return new VF.Factory({
           renderer: {
+            elementId: '',
             width: 700,
             height: 500,
           },
@@ -49,7 +49,7 @@ Vex.Flow.Test.Factory = (function () {
     drawTab: function (options) {
       var vf = VF.Test.makeFactory(options, 500, 400);
 
-      var system = vf.System();
+      var system = vf.System({ width: 500 });
 
       var stave = vf.Stave().setClef('treble').setKeySignature('C#').setBegBarType(Vex.Flow.Barline.type.REPEAT_BEGIN);
 
@@ -77,3 +77,5 @@ Vex.Flow.Test.Factory = (function () {
 
   return Factory;
 })();
+Vex.Flow.Test.Factory = FactoryTests;
+export { FactoryTests };

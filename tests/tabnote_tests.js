@@ -2,8 +2,7 @@
  * VexFlow - TabNote Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-VF.Test.TabNote = (function () {
+const TabNoteTests = (function () {
   var TabNote = {
     Start: function () {
       QUnit.module('TabNote');
@@ -229,7 +228,7 @@ VF.Test.TabNote = (function () {
         return tabNote;
       });
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(notes);
       new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
       voice.draw(ctx, stave);
@@ -303,7 +302,7 @@ VF.Test.TabNote = (function () {
         return tabNote;
       });
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(notes);
       new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
       voice.draw(ctx, stave);
@@ -377,7 +376,7 @@ VF.Test.TabNote = (function () {
       });
 
       ctx.setFont('sans-serif', 10, 'bold');
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(notes);
       new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
       voice.draw(ctx, stave);
@@ -457,7 +456,7 @@ VF.Test.TabNote = (function () {
 
       ctx.setFont('Arial', 10, 'bold');
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(notes);
       new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
       voice.draw(ctx, stave);
@@ -513,7 +512,7 @@ VF.Test.TabNote = (function () {
       notes[2].addDot();
       notes[2].addDot();
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(notes);
       new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
       voice.draw(ctx, stave);
@@ -523,3 +522,5 @@ VF.Test.TabNote = (function () {
 
   return TabNote;
 })();
+VF.Test.TabNote = TabNoteTests;
+export { TabNoteTests };

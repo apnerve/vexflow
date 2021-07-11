@@ -1,7 +1,6 @@
 // [VexFlow](http://vexflow.com) - Copyright (c) Mohit Muthanna 2010.
 
-import { Vex } from './vex';
-import { Flow } from './tables';
+import { RuntimeError } from './util';
 import { Element } from './element';
 import { BoundingBoxComputation } from './boundingboxcomputation';
 import { BoundingBox } from './boundingbox';
@@ -9,6 +8,7 @@ import { Font, FontGlyph } from './font';
 import { RenderContext, TypeProps } from './types/common';
 import { Stave } from './stave';
 import { Stem } from './stem';
+import { Flow } from './flow';
 
 export interface DurationCode {
   common: TypeProps;
@@ -47,16 +47,16 @@ export interface GlyphOptions {
   category?: string;
 }
 export interface GlyphMetrics {
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   x_min: number;
   x_max: number;
   x_shift: number;
   y_shift: number;
   scale: number;
-  ha?: number;
+  ha: number;
   outline: string[];
-  font?: Font;
+  font: Font;
 }
 
 function processOutline(
@@ -66,7 +66,7 @@ function processOutline(
   scaleX: number,
   scaleY: number,
   // eslint-disable-next-line
-  outlineFns: Record<string, ((...args: any[]) => void) >
+  outlineFns: Record<string, (...args: any[]) => void>
 ): void {
   let command: string;
   let x: number;
@@ -112,20 +112,22 @@ function processOutline(
 export class Glyph extends Element {
   bbox: BoundingBox = new BoundingBox(0, 0, 0, 0);
   code: string;
-  metrics?: GlyphMetrics;
-  topGlyphs?: Glyph[];
-  botGlyphs?: Glyph[];
+  // metrics is initialised in the constructor by either setOptions or reset
+  // eslint-disable-next-line
+  metrics!: GlyphMetrics;
+  topGlyphs: Glyph[] = [];
+  botGlyphs: Glyph[] = [];
 
   protected options: GlyphOptions;
   protected originShift: { x: number; y: number };
   protected x_shift: number;
   protected y_shift: number;
-  protected scale: number = 1;
+  scale: number = 1;
   protected point: number;
   protected stave?: Stave;
 
   // eslint-disable-next-line
-  draw() {};
+  draw() {}
 
   /*
     Static methods used to implement loading and rendering glyphs.
@@ -155,7 +157,7 @@ export class Glyph extends Element {
 
   static lookupGlyph(fontStack: Font[], code: string): { font: Font; glyph: FontGlyph } {
     if (!fontStack) {
-      throw new Vex.RERR('BAD_FONTSTACK', 'Font stack is misconfigured');
+      throw new RuntimeError('BAD_FONTSTACK', 'Font stack is misconfigured');
     }
 
     let glyph: FontGlyph;
@@ -166,7 +168,7 @@ export class Glyph extends Element {
       if (glyph) return { glyph, font };
     }
 
-    throw new Vex.RERR('BadGlyph', `Glyph ${code} does not exist in font.`);
+    throw new RuntimeError('BadGlyph', `Glyph ${code} does not exist in font.`);
   }
 
   static loadMetrics(fontStack: Font[], code: string, category?: string): GlyphMetrics {
@@ -210,9 +212,11 @@ export class Glyph extends Element {
         ha,
         outline,
         font,
+        width: x_max - x_min,
+        height: ha,
       };
     } else {
-      throw new Vex.RERR('BadGlyph', `Glyph ${code} has no outline defined.`);
+      throw new RuntimeError('BadGlyph', `Glyph ${code} has no outline defined.`);
     }
   }
 
@@ -231,7 +235,7 @@ export class Glyph extends Element {
     point: number,
     /** The glyph code in font.getGlyphs() */
     val: string,
-    options: { font?: Font; category: string }
+    options?: { font?: Font; category: string }
   ): GlyphMetrics {
     const params = {
       fontStack: Flow.DEFAULT_FONT_STACK,
@@ -248,7 +252,7 @@ export class Glyph extends Element {
       });
     }
 
-    const scale = metrics.font ? (point * 72.0) / (metrics.font.getResolution() * 100.0) : 1;
+    const scale = (point * 72.0) / (metrics.font.getResolution() * 100.0);
 
     Glyph.renderOutline(ctx, metrics.outline, scale * metrics.scale, x_pos + metrics.x_shift, y_pos + metrics.y_shift);
     return metrics;
@@ -278,7 +282,7 @@ export class Glyph extends Element {
       z: bboxComp.noOp.bind(bboxComp),
     });
 
-    return new BoundingBox(bboxComp.x1, bboxComp.y1, bboxComp.width(), bboxComp.height());
+    return new BoundingBox(bboxComp.getX1(), bboxComp.getY1(), bboxComp.width(), bboxComp.height());
   }
 
   /**
@@ -342,7 +346,7 @@ export class Glyph extends Element {
   reset(): void {
     this.metrics = Glyph.loadMetrics(this.options.fontStack, this.code, this.options.category);
     // Override point from metrics file
-    if (this.options.category && this.metrics?.font) {
+    if (this.options.category) {
       this.point = Glyph.lookupFontMetric({
         category: this.options.category,
         font: this.metrics.font,
@@ -352,7 +356,7 @@ export class Glyph extends Element {
       });
     }
 
-    this.scale = this.metrics?.font ? (this.point * 72) / (this.metrics.font.getResolution() * 100) : 1;
+    this.scale = (this.point * 72) / (this.metrics.font.getResolution() * 100);
     this.bbox = Glyph.getOutlineBoundingBox(
       this.metrics.outline,
       this.scale * this.metrics.scale,
@@ -363,7 +367,7 @@ export class Glyph extends Element {
 
   getMetrics(): GlyphMetrics {
     if (!this.metrics) {
-      throw new Vex.RuntimeError('BadGlyph', `Glyph ${this.code} is not initialized.`);
+      throw new RuntimeError('BadGlyph', `Glyph ${this.code} is not initialized.`);
     }
 
     return {
@@ -371,10 +375,12 @@ export class Glyph extends Element {
       x_max: this.metrics.x_max * this.scale * this.metrics.scale,
       width: this.bbox.getW(),
       height: this.bbox.getH(),
-      scale: 1,
-      x_shift: 0,
-      y_shift: 0,
-      outline: [],
+      scale: this.scale * this.metrics.scale,
+      x_shift: this.metrics.x_shift,
+      y_shift: this.metrics.y_shift,
+      outline: this.metrics.outline,
+      font: this.metrics.font,
+      ha: this.metrics.ha,
     };
   }
 
@@ -399,7 +405,7 @@ export class Glyph extends Element {
 
   render(ctx: RenderContext, x: number, y: number): void {
     if (!this.metrics) {
-      throw new Vex.RuntimeError('BadGlyph', `Glyph ${this.code} is not initialized.`);
+      throw new RuntimeError('BadGlyph', `Glyph ${this.code} is not initialized.`);
     }
 
     const outline = this.metrics.outline;
@@ -421,11 +427,11 @@ export class Glyph extends Element {
     const context = this.checkContext();
 
     if (!this.metrics) {
-      throw new Vex.RuntimeError('BadGlyph', `Glyph ${this.code} is not initialized.`);
+      throw new RuntimeError('BadGlyph', `Glyph ${this.code} is not initialized.`);
     }
 
     if (!this.stave) {
-      throw new Vex.RuntimeError('GlyphError', 'No valid stave');
+      throw new RuntimeError('GlyphError', 'No valid stave');
     }
 
     const outline = this.metrics.outline;

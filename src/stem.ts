@@ -4,16 +4,15 @@
 // This file implements the `Stem` object. Generally this object is handled
 // by its parent `StemmableNote`.
 
-import { Vex } from './vex';
+import { RuntimeError, log } from './util';
 import { Element } from './element';
-import { Flow } from './tables';
+import { Flow } from './flow';
 import { BoundingBox } from './boundingbox';
 
 // To enable logging for this class. Set `Vex.Flow.Stem.DEBUG` to `true`.
-function L(
-  // eslint-disable-next-line
-  ...args: any[]) {
-  if (Stem.DEBUG) Vex.L('Vex.Flow.Stem', args);
+// eslint-disable-next-line
+function L(...args: any[]) {
+  if (Stem.DEBUG) log('Vex.Flow.Stem', args);
 }
 
 export interface StemOptions {
@@ -35,8 +34,6 @@ export interface StemOptions {
 export class Stem extends Element {
   static DEBUG: boolean;
 
-  renderHeightAdjustment: number;
-
   protected hide: boolean;
   protected isStemlet: boolean;
   protected stemletHeight: number;
@@ -50,6 +47,7 @@ export class Stem extends Element {
   protected stem_down_y_base_offset: number = 0;
   protected stem_direction: number;
   protected stem_extension: number;
+  protected renderHeightAdjustment: number;
 
   static get CATEGORY(): string {
     return 'stem';
@@ -151,7 +149,7 @@ export class Stem extends Element {
   }
 
   getBoundingBox(): BoundingBox {
-    throw new Vex.RERR('NotImplemented', 'getBoundingBox() not implemented.');
+    throw new RuntimeError('NotImplemented', 'getBoundingBox() not implemented.');
   }
 
   // Get the y coordinates for the very base of the stem to the top of
@@ -177,6 +175,14 @@ export class Stem extends Element {
     this.isStemlet = isStemlet;
     this.stemletHeight = stemletHeight;
     return this;
+  }
+
+  adjustHeightForFlag(): void {
+    this.renderHeightAdjustment = this.musicFont.lookupMetric('stem.heightAdjustmentForFlag', -3);
+  }
+
+  adjustHeightForBeam(): void {
+    this.renderHeightAdjustment = -Stem.WIDTH / 2;
   }
 
   // Render the stem onto the canvas

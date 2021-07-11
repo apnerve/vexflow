@@ -2,8 +2,7 @@
  * VexFlow - TabTie Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-VF.Test.TabTie = (function () {
+const TabTieTests = (function () {
   var TabTie = {
     Start: function () {
       var run = VF.Test.runTests;
@@ -18,7 +17,7 @@ VF.Test.TabTie = (function () {
     },
 
     tieNotes: function (notes, indices, stave, ctx, text) {
-      var voice = new VF.Voice(VF.Test.TIME4_4);
+      var voice = new VF.Voice(VF.TIME4_4);
       voice.addTickables(notes);
 
       new VF.Formatter().joinVoices([voice]).format([voice], 100);
@@ -132,7 +131,7 @@ VF.Test.TabTie = (function () {
         }),
       ];
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).addTickables(notes);
+      var voice = new VF.Voice(VF.TIME4_4).addTickables(notes);
       new VF.Formatter().joinVoices([voice]).format([voice], 300);
       voice.draw(c.context, c.stave);
 
@@ -204,7 +203,7 @@ VF.Test.TabTie = (function () {
         newNote({ positions: [{ str: 4, fret: 6 }], duration: 'h' }),
       ];
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).addTickables(notes);
+      var voice = new VF.Voice(VF.TIME4_4).addTickables(notes);
       new VF.Formatter().joinVoices([voice]).format([voice], 300);
       voice.draw(c.context, c.stave);
 
@@ -231,3 +230,5 @@ VF.Test.TabTie = (function () {
 
   return TabTie;
 })();
+VF.Test.TabTie = TabTieTests;
+export { TabTieTests };

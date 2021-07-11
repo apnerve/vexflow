@@ -2,8 +2,7 @@
  * VexFlow - ModifierContext Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-VF.Test.ModifierContext = (function () {
+const ModifierContextTests = (function () {
   var ModifierContext = {
     Start: function () {
       QUnit.module('ModifierContext');
@@ -21,10 +20,10 @@ VF.Test.ModifierContext = (function () {
       var modifier1 = new VF.Modifier();
       var modifier2 = new VF.Modifier();
 
-      mc.addModifier(modifier1);
-      mc.addModifier(modifier2);
+      mc.addMember(modifier1);
+      mc.addMember(modifier2);
 
-      var accidentals = mc.getModifiers('none');
+      var accidentals = mc.getMembers('none');
 
       equal(accidentals.length, 2, 'Added two modifiers');
     },
@@ -32,3 +31,5 @@ VF.Test.ModifierContext = (function () {
 
   return ModifierContext;
 })();
+VF.Test.ModifierContext = ModifierContextTests;
+export { ModifierContextTests };

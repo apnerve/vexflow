@@ -2,19 +2,14 @@ export interface FontInfo {
   size: number;
   weight: string;
   family: string;
+  style?: string;
 }
 
 export interface Bounds {
-  w: number;
   x: number;
-  h: number;
   y: number;
-}
-
-/** TODO: Move to GlyphNote */
-export interface GlyphNoteOptions {
-  ignoreTicks: boolean;
-  line: number;
+  w: number;
+  h: number;
 }
 
 export interface KeyProps {
@@ -29,14 +24,6 @@ export interface KeyProps {
   stroke: number;
   shift_right: number;
   displaced: boolean;
-}
-
-/** TODO: Move to StaveTempo */
-export interface StaveTempoOptions {
-  bpm: number;
-  dots: number;
-  duration: string;
-  name: string;
 }
 
 export interface TypeProps extends KeyProps {
@@ -61,48 +48,56 @@ export interface TypeProps extends KeyProps {
   position: string;
 }
 
-/** Contexts common interface */
 export interface RenderContext {
   clear(): void;
-  setFont(family: string, size: number, weight?: string): RenderContext;
-  setRawFont(font: string): RenderContext;
-  setFillStyle(style: string): RenderContext;
-  setBackgroundFillStyle(style: string): RenderContext;
-  setStrokeStyle(style: string): RenderContext;
-  setShadowColor(color: string): RenderContext;
-  setShadowBlur(blur: string): RenderContext;
-  setLineWidth(width: number): RenderContext;
-  setLineCap(cap_type: string): RenderContext;
-  setLineDash(dash: string): RenderContext;
-  scale(x: number, y: number): RenderContext;
-  resize(width: number, height: number): RenderContext;
-  fillRect(x: number, y: number, width: number, height: number): RenderContext;
-  clearRect(x: number, y: number, width: number, height: number): RenderContext;
-  beginPath(): RenderContext;
-  moveTo(x: number, y: number): RenderContext;
-  lineTo(x: number, y: number): RenderContext;
-  bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number): RenderContext;
-  quadraticCurveTo(x1: number, y1: number, x2: number, y2: number): RenderContext;
-  arc(
-    x: number,
-    y: number,
-    radius: number,
-    startAngle: number,
-    endAngle: number,
-    antiClockwise: boolean
-  ): RenderContext;
-  glow(): RenderContext;
-  fill(): RenderContext;
-  stroke(): RenderContext;
-  closePath(): RenderContext;
-  fillText(text: string, x: number, y: number): RenderContext;
-  save(): RenderContext;
-  restore(): RenderContext;
-  openGroup(): Node | undefined;
+  setFont(family: string, size: number, weight: string): this;
+  setRawFont(font: string): this;
+  setFillStyle(style: string): this;
+  setBackgroundFillStyle(style: string): this;
+  setStrokeStyle(style: string): this;
+  setShadowColor(color: string): this;
+  setShadowBlur(blur: number): this;
+  setLineWidth(width: number): this;
+  setLineCap(capType: CanvasLineCap): this;
+  setLineDash(dashPattern: number[]): this;
+  scale(x: number, y: number): this;
+  rect(x: number, y: number, width: number, height: number): this;
+  resize(width: number, height: number): this;
+  fillRect(x: number, y: number, width: number, height: number): this;
+  clearRect(x: number, y: number, width: number, height: number): this;
+  beginPath(): this;
+  moveTo(x: number, y: number): this;
+  lineTo(x: number, y: number): this;
+  bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): this;
+  quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): this;
+  arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, antiClockwise: boolean): this;
+  glow(): this;
+  fill(attributes?: any): this;
+  stroke(): this;
+  closePath(): this;
+  fillText(text: string, x: number, y: number): this;
+  save(): this;
+  restore(): this;
+  openGroup(cls: string, id?: string, attrs?: { pointerBBox: boolean }): any;
   closeGroup(): void;
+  add(child: any): void;
 
-  /**
-   * canvas returns TextMetrics, SVG returns SVGRect, Raphael returns {width : number, height : number}. Only width is used throughout VexFlow.
-   */
-  measureText(text: string): { width: number };
+  /** canvas returns TextMetrics and SVG returns SVGRect. */
+  measureText(text: string): { width: number; height?: number };
+
+  /** Maintain compatibility with the CanvasRenderingContext2D API. */
+  set font(value: string);
+
+  /** Maintain compatibility with the CanvasRenderingContext2D API. */
+  set fillStyle(style: string);
+
+  /** Maintain compatibility with the CanvasRenderingContext2D API. */
+  set strokeStyle(style: string);
+}
+
+export interface TieNotes {
+  first_note: Note;
+  last_note: Note;
+  first_indices: number[];
+  last_indices: number[];
 }

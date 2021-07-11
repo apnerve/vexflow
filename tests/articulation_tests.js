@@ -2,9 +2,7 @@
  * VexFlow - Articulation Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-var VF = Vex.Flow;
-VF.Test.Articulation = (function () {
+const ArticulationTests = (function () {
   var Articulation = {
     Start: function () {
       QUnit.module('Articulation');
@@ -343,7 +341,7 @@ VF.Test.Articulation = (function () {
       notes3[2].addModifier(new VF.Articulation('a.').setPosition(3), 0);
       notes3[3].addModifier(new VF.Articulation('a.').setPosition(4), 0);
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
 
       voice.addTickables(notes);
       voice.addTickables(notes2);
@@ -359,3 +357,5 @@ VF.Test.Articulation = (function () {
 
   return Articulation;
 })();
+VF.Test.Articulation = ArticulationTests;
+export { ArticulationTests };

@@ -6,20 +6,26 @@
 // VEX modules can take advantage of font metrics in a uniform way.
 //
 
-import { Vex } from './vex';
+import { RuntimeError, log } from './util';
 import { PetalumaScriptTextMetrics } from './fonts/petalumascript_textmetrics';
 import { RobotoSlabTextMetrics } from './fonts/robotoslab_textmetrics';
-import { FontGlyph } from './font';
+import { FontInfo } from './types/common';
+
 export interface TextFontMetrics {
-  advanceWidth: number;
+  x_min: number;
+  x_max: number;
+  y_min: number;
+  y_max: number;
   ha: number;
+  leftSideBearing: number;
+  advanceWidth: number;
 }
 
 export interface TextFontRegistry {
   [name: string]: unknown;
   name?: string;
   resolution?: number;
-  glyphs?: Record<string, FontGlyph>;
+  glyphs?: Record<string, TextFontMetrics>;
   family: string;
   serifs: boolean;
   monospaced?: boolean;
@@ -35,12 +41,12 @@ export interface TextFontRegistry {
 function L(
   // eslint-disable-next-line
   ...args: any[]) {
-  if (TextFont.DEBUG) Vex.L('Vex.Flow.TextFont', args);
+  if (TextFont.DEBUG) log('Vex.Flow.TextFont', args);
 }
 
 export class TextFont {
   protected static debug: boolean;
-  protected resolution: number = 1000;
+  resolution: number = 1000;
   protected name?: string;
   protected glyphs: Record<string, TextFontMetrics> = {};
   protected family: string = '';
@@ -147,7 +153,7 @@ export class TextFont {
   // ### fontWeightToBold
   // return true if the font weight indicates we desire a 'bold'
   // used in getTextFontFromVexFontData
-  static fontWeightToBold(fw: string): boolean {
+  static fontWeightToBold(fw?: string): boolean {
     if (!fw) {
       return false;
     }
@@ -161,7 +167,7 @@ export class TextFont {
   // ### fontStyleToItalic
   // return true if the font style indicates we desire 'italic' style
   // used in getTextFontFromVexFontData
-  static fontStyleToItalic(fs: string): boolean {
+  static fontStyleToItalic(fs?: string): boolean {
     return typeof fs === 'string' && fs.toLowerCase() === 'italic';
   }
 
@@ -178,9 +184,9 @@ export class TextFont {
   // Find the font that most closely matches the parameters from the given font data.
   // Primarily we look for font family, also bold and italic attributes.  This
   // method will always return a fallback font if there are no matches.
-  static getTextFontFromVexFontData(fd: TextFont): TextFont {
+  static getTextFontFromVexFontData(fd: FontInfo): TextFont {
     let i = 0;
-    let selectedFont = null;
+    let selectedFont = undefined;
     const fallback = TextFont.fontRegistry[0];
     let candidates: TextFontRegistry[] = [];
     const families = fd.family.split(',');
@@ -250,22 +256,37 @@ export class TextFont {
     this.style = '';
     this.attrs = { type: 'TextFont' };
     if (!params.name) {
-      throw new Vex.RERR('BadArgument', 'Font constructor must specify a name');
+      throw new RuntimeError('BadArgument', 'Font constructor must specify a name');
     }
     const fontData = params.glyphs ? params : TextFont.getFontDataByName(params.name);
     if (!fontData) {
       if (params.glyphs && params.resolution) {
         TextFont.registerFont(params);
       } else {
-        throw new Vex.RERR('BadArgument', 'Unknown font, must have glyph metrics and resolution');
+        throw new RuntimeError('BadArgument', 'Unknown font, must have glyph metrics and resolution');
       }
     } else {
-      Vex.Merge(this, fontData);
+      this.updateParams(fontData);
     }
-    Vex.Merge(this, params);
+    this.updateParams(params);
 
     this.updateCacheKey();
   }
+
+  updateParams(params: TextFontRegistry): void {
+    if (params.name) this.name = params.name;
+    if (params.resolution) this.resolution = params.resolution;
+    if (params.glyphs) this.glyphs = params.glyphs;
+    this.family = params.family;
+    this.serifs = params.serifs;
+    if (params.monospaced) this.monospaced = params.monospaced;
+    this.italic = params.italic;
+    this.bold = params.bold;
+    if (params.maxSizeGlyph) this.maxSizeGlyph = params.maxSizeGlyph;
+    if (params.superscriptOffset) this.superscriptOffset = params.superscriptOffset;
+    if (params.subscriptOffset) this.subscriptOffset = params.subscriptOffset;
+  }
+
   // Create a hash with the current font data, so we can cache computed widths
   updateCacheKey(): void {
     this.fontCacheKey = `${this.family}-${this.size}-${this.weight}-${this.style}`;

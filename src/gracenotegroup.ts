@@ -5,8 +5,8 @@
 // This file implements `GraceNoteGroup` which is used to format and
 // render grace notes.
 
-import { Vex } from './vex';
-import { Flow } from './tables';
+import { log } from './util';
+import { Flow } from './flow';
 import { Modifier } from './modifier';
 import { Formatter } from './formatter';
 import { Voice } from './voice';
@@ -15,12 +15,14 @@ import { StaveTie } from './stavetie';
 import { TabTie } from './tabtie';
 import { StaveNote } from './stavenote';
 import { Note } from './note';
+import { StemmableNote } from './stemmablenote';
+import { ModifierContextState } from './modifiercontext';
+import { RenderContext } from './types/common';
 
 // To enable logging for this class. Set `GraceNoteGroup.DEBUG` to `true`.
-function L(
-  // eslint-disable-next-line
-  ...args: any) {
-  if (GraceNoteGroup.DEBUG) Vex.L('Vex.Flow.GraceNoteGroup', args);
+// eslint-disable-next-line
+function L(...args: any) {
+  if (GraceNoteGroup.DEBUG) log('Vex.Flow.GraceNoteGroup', args);
 }
 
 /** GraceNoteGroup is used to format and render grace notes. */
@@ -28,7 +30,7 @@ export class GraceNoteGroup extends Modifier {
   static DEBUG: boolean;
 
   protected readonly voice: Voice;
-  protected readonly grace_notes: Note[];
+  protected readonly grace_notes: StemmableNote[];
   protected readonly show_slur?: boolean;
 
   protected preFormatted: boolean;
@@ -42,7 +44,7 @@ export class GraceNoteGroup extends Modifier {
   }
 
   /** Arranges groups inside a `ModifierContext`. */
-  static format(gracenote_groups: GraceNoteGroup[], state: { left_shift: number }): boolean {
+  static format(gracenote_groups: GraceNoteGroup[], state: ModifierContextState): boolean {
     const group_spacing_stave = 4;
     const group_spacing_tab = 0;
 
@@ -90,7 +92,7 @@ export class GraceNoteGroup extends Modifier {
   }
 
   //** `GraceNoteGroup` inherits from `Modifier` and is placed inside a `ModifierContext`. */
-  constructor(grace_notes: Note[], show_slur?: boolean) {
+  constructor(grace_notes: StemmableNote[], show_slur?: boolean) {
     super();
     this.setAttribute('type', 'GraceNoteGroup');
 
@@ -133,7 +135,7 @@ export class GraceNoteGroup extends Modifier {
     this.preFormatted = true;
   }
 
-  beamNotes(grace_notes?: Note[]): this {
+  beamNotes(grace_notes?: StemmableNote[]): this {
     grace_notes = grace_notes || this.grace_notes;
     if (grace_notes.length > 1) {
       const beam = new Beam(grace_notes);
@@ -144,11 +146,6 @@ export class GraceNoteGroup extends Modifier {
       this.beams.push(beam);
     }
 
-    return this;
-  }
-
-  setNote(note: Note): this {
-    this.note = note;
     return this;
   }
 
@@ -166,35 +163,27 @@ export class GraceNoteGroup extends Modifier {
   }
 
   draw(): void {
-    this.checkContext();
-
-    const note = this.getNote();
+    const ctx: RenderContext = this.checkContext();
+    const note = this.checkAttachedNote();
+    this.setRendered();
 
     L('Drawing grace note group for:', note);
 
-    if (!(note && this.index !== null)) {
-      throw new Vex.RuntimeError(
-        'NoAttachedNote',
-        "Can't draw grace note without a parent note and parent note index."
-      );
-    }
-
-    this.setRendered();
     this.alignSubNotesWithNote(this.getGraceNotes(), note); // Modifier function
 
     // Draw notes
     this.grace_notes.forEach((graceNote) => {
-      graceNote.setContext(this.getContext()).draw();
+      graceNote.setContext(ctx).draw();
     });
 
     // Draw beam
     this.beams.forEach((beam) => {
-      beam.setContext(this.getContext()).draw();
+      beam.setContext(ctx).draw();
     });
 
     if (this.show_slur) {
       // Create and draw slur
-      const is_stavenote = this.getNote().getCategory() === StaveNote.CATEGORY;
+      const is_stavenote = note.getCategory() === StaveNote.CATEGORY;
       const TieClass = is_stavenote ? StaveTie : TabTie;
 
       this.slur = new TieClass({
@@ -206,7 +195,7 @@ export class GraceNoteGroup extends Modifier {
 
       this.slur.render_options.cp2 = 12;
       this.slur.render_options.y_shift = (is_stavenote ? 7 : 5) + this.render_options.slur_y_shift;
-      this.slur.setContext(this.getContext()).draw();
+      this.slur.setContext(ctx).draw();
     }
   }
 }

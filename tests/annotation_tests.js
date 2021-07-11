@@ -2,8 +2,7 @@
  * VexFlow - Annotation Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-VF.Test.Annotation = (function () {
+const AnnotationTests = (function () {
   var runTests = VF.Test.runTests;
   var Annotation = {
     Start: function () {
@@ -410,7 +409,7 @@ VF.Test.Annotation = (function () {
       notes3[2].addModifier(new VF.Annotation('Text').setVerticalJustification(3), 0); // U
       notes3[3].addModifier(new VF.Annotation('Text').setVerticalJustification(4), 0); // D
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).setMode(VF.Voice.Mode.SOFT);
+      var voice = new VF.Voice(VF.TIME4_4).setMode(VF.Voice.Mode.SOFT);
 
       voice.addTickables(notes);
       voice.addTickables(notes2);
@@ -426,3 +425,5 @@ VF.Test.Annotation = (function () {
 
   return Annotation;
 })();
+VF.Test.Annotation = AnnotationTests;
+export { AnnotationTests };

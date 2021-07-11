@@ -2,8 +2,7 @@
  * VexFlow - Accidental Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-Vex.Flow.Test.Accidental = (function () {
+const AccidentalTests = (function () {
   function hasAccidental(note) {
     return note.modifiers.reduce(function (hasAcc, modifier) {
       return hasAcc || modifier.getCategory() === 'accidentals';
@@ -193,7 +192,7 @@ Vex.Flow.Test.Accidental = (function () {
       var stave = vf.Stave({ x: 0, y: 10, width: 780 });
       var score = vf.EasyScore();
 
-      var accids = Object.keys(VF.accidentalCodes.accidentals).filter(function (accid) {
+      var accids = Object.keys(VF.accidentalMap).filter(function (accid) {
         return accid !== '{' && accid !== '}';
       });
 
@@ -991,3 +990,5 @@ Vex.Flow.Test.Accidental = (function () {
 
   return Accidental;
 })();
+Vex.Flow.Test.Accidental = AccidentalTests;
+export { AccidentalTests };

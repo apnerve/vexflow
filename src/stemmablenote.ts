@@ -4,8 +4,8 @@
 // `StemmableNote` is an abstract interface for notes with optional stems.
 // Examples of stemmable notes are `StaveNote` and `TabNote`
 
-import { Vex } from './vex';
-import { Flow } from './tables';
+import { RuntimeError } from './util';
+import { Flow } from './flow';
 import { Stem, StemOptions } from './stem';
 import { Glyph } from './glyph';
 import { Note, NoteStruct } from './note';
@@ -25,6 +25,13 @@ export abstract class StemmableNote extends Note {
 
   // Get and set the note's `Stem`
   getStem(): Stem | undefined {
+    return this.stem;
+  }
+
+  checkStem(): Stem {
+    if (!this.stem) {
+      throw new RuntimeError('NoStem', 'No stem attached to instance');
+    }
     return this.stem;
   }
 
@@ -104,14 +111,14 @@ export abstract class StemmableNote extends Note {
 
   // Get/set the direction of the stem
   getStemDirection(): number {
-    if (!this.stem_direction) throw new Vex.RERR('NoStem', 'No stem attached to this note.');
+    if (!this.stem_direction) throw new RuntimeError('NoStem', 'No stem attached to this note.');
     return this.stem_direction;
   }
 
-  setStemDirection(direction: number): this {
+  setStemDirection(direction?: number): this {
     if (!direction) direction = Stem.UP;
     if (direction !== Stem.UP && direction !== Stem.DOWN) {
-      throw new Vex.RERR('BadArgument', `Invalid stem direction: ${direction}`);
+      throw new RuntimeError('BadArgument', `Invalid stem direction: ${direction}`);
     }
 
     this.stem_direction = direction;
@@ -190,39 +197,39 @@ export abstract class StemmableNote extends Note {
 
   // Get the top and bottom `y` values of the stem.
   getStemExtents(): Record<string, number> {
-    if (!this.stem) throw new Vex.RERR('NoStem', 'No stem attached to this note.');
+    if (!this.stem) throw new RuntimeError('NoStem', 'No stem attached to this note.');
     return this.stem.getExtents();
   }
 
   /** Gets the `y` value for the top modifiers at a specific `textLine`. */
   getYForTopText(textLine: number): number {
-    if (!this.stave) throw new Vex.RERR('NoStave', 'No stave attached to this note.');
+    const stave = this.checkStave();
     if (this.hasStem()) {
       const extents = this.getStemExtents();
-      if (!extents) throw new Vex.RERR('InvalidState', 'Stem does not have extents.');
+      if (!extents) throw new RuntimeError('InvalidState', 'Stem does not have extents.');
 
       return Math.min(
-        this.stave.getYForTopText(textLine),
+        stave.getYForTopText(textLine),
         extents.topY - this.render_options.annotation_spacing * (textLine + 1)
       );
     } else {
-      return this.stave.getYForTopText(textLine);
+      return stave.getYForTopText(textLine);
     }
   }
 
   /** Gets the `y` value for the bottom modifiers at a specific `textLine`. */
   getYForBottomText(textLine: number): number {
-    if (!this.stave) throw new Vex.RERR('NoStave', 'No stave attached to this note.');
+    const stave = this.checkStave();
     if (this.hasStem()) {
       const extents = this.getStemExtents();
-      if (!extents) throw new Vex.RERR('InvalidState', 'Stem does not have extents.');
+      if (!extents) throw new RuntimeError('InvalidState', 'Stem does not have extents.');
 
       return Math.max(
-        this.stave.getYForTopText(textLine),
+        stave.getYForTopText(textLine),
         extents.baseY + this.render_options.annotation_spacing * textLine
       );
     } else {
-      return this.stave.getYForBottomText(textLine);
+      return stave.getYForBottomText(textLine);
     }
   }
 

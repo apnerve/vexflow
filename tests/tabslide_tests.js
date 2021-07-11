@@ -2,8 +2,7 @@
  * VexFlow - TabSlide Tests
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
-
-VF.Test.TabSlide = (function () {
+const TabSlideTests = (function () {
   var TabSlide = {
     Start: function () {
       var runTests = VF.Test.runTests;
@@ -14,7 +13,7 @@ VF.Test.TabSlide = (function () {
     },
 
     tieNotes: function (notes, indices, stave, ctx) {
-      var voice = new VF.Voice(VF.Test.TIME4_4);
+      var voice = new VF.Voice(VF.TIME4_4);
       voice.addTickables(notes);
 
       new VF.Formatter().joinVoices([voice]).format([voice], 100);
@@ -105,7 +104,7 @@ VF.Test.TabSlide = (function () {
         }),
       ];
 
-      var voice = new VF.Voice(VF.Test.TIME4_4).addTickables(notes);
+      var voice = new VF.Voice(VF.TIME4_4).addTickables(notes);
       new VF.Formatter().joinVoices([voice]).format([voice], 300);
       voice.draw(c.context, c.stave);
 
@@ -167,3 +166,5 @@ VF.Test.TabSlide = (function () {
 
   return TabSlide;
 })();
+VF.Test.TabSlide = TabSlideTests;
+export { TabSlideTests };
